@@ -4,13 +4,10 @@ import FileUpload from './components/FileUpload';
 import CodeLookup from './components/CodeLookup';
 
 function App() {
-  // You can store the entire parsed JSON in 'data', or store
-  // a more processed structure if you prefer
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<any[]>([]);
 
-  const handleJsonParsed = (parsedJson: any) => {
-    // Optionally, process the data here to build a
-    // hierarchical structure or dictionary
+  const handleJsonParsed = (parsedJson: any[]) => {
+    // Optionally process the data here if needed
     setData(parsedJson);
   };
 
@@ -19,7 +16,7 @@ function App() {
       <h1>HTS Code Summarizer (Frontend Only)</h1>
       <FileUpload onJsonParsed={handleJsonParsed} />
 
-      {data ? (
+      {data && data.length > 0 ? (
         <CodeLookup data={data} />
       ) : (
         <p>No data uploaded yet</p>
