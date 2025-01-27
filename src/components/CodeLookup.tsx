@@ -32,11 +32,11 @@ Output:
       `.trim();
 
       // Example fetch call to your Ollama server
-      const response = await fetch('http://192.168.100.4:11434/api/generate', {
+      const response = await fetch(`${process.env.REACT_APP_OLLAMA_BASE_URL}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'phi4',
+          model: process.env.REACT_APP_OLLAMA_MODEL || 'phi4',
           prompt: promptText,
           stream: false,
         }),
