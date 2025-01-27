@@ -36,6 +36,7 @@ cp .env.example .env
 ```
 REACT_APP_OLLAMA_BASE_URL=http://localhost:11434
 REACT_APP_OLLAMA_MODEL=phi4
+PORT=3000  # Optional: Change this to run the app on a different port
 ```
 
 ### 4. Prepare HTS Data
