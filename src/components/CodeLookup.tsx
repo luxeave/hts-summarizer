@@ -132,7 +132,11 @@ Output:
 
       <div style={{ marginTop: 16 }}>
         <h3>Summary from Ollama</h3>
-        <pre>{summary || '[No summary generated yet]'}</pre>
+        <div className="summary-container">
+          <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {summary || '[No summary generated yet]'}
+          </pre>
+        </div>
       </div>
     </div>
   );
