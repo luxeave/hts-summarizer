@@ -12,7 +12,7 @@ function App() {
   };
 
   return (
-    <div>
+    <div style={{ padding: '2rem' }} className="App">
       <h1>HTS Code Summarizer</h1>
       <FileUpload onJsonParsed={handleJsonParsed} />
 
