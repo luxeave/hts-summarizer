@@ -79,6 +79,25 @@ npm run build
 2. The `build` folder will contain optimized static files ready for deployment
 3. Deploy the contents of the `build` folder to your preferred hosting service (e.g., Netlify, Vercel, AWS S3)
 
+## Future Improvements
+
+The application has several potential areas for enhancement:
+
+### Output Customization
+- The AI Summary output can be further directed through parameter constraints
+- Additional parameters could include:
+  - Number of sentences in the analysis
+  - Word count limits
+  - Conciseness level
+  - Tone of the analysis (technical, simplified, etc.)
+
+### Model Improvements
+- Currently, the application uses prompt-tuning for AI summarization
+- For more deterministic summaries, model fine-tuning could be implemented
+- This would potentially improve:
+  - Consistency in output format
+  - Domain-specific understanding
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
