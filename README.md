@@ -1,46 +1,87 @@
-# Getting Started with Create React App
+# HTS React Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This React application helps you analyze and process Harmonized Tariff Schedule (HTS) data from the USITC database.
 
-## Available Scripts
+## Prerequisites
 
-In the project directory, you can run:
+- Node.js (v18 or higher)
+- npm (v9 or higher)
+- Ollama (for AI-powered analysis)
 
-### `npm start`
+**Note**: This application has only been tested with Ollama as the AI backend. Other LLM servers or providers are not currently supported.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Getting Started
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### 1. Clone the Repository
 
-### `npm test`
+```bash
+git clone https://github.com/yourusername/hts-react.git
+cd hts-react
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 2. Install Dependencies
 
-### `npm run build`
+```bash
+npm install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 3. Configure Environment Variables
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Copy the example environment file:
+```bash
+cp .env.example .env
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. Update the `.env` file with your configuration:
+```
+REACT_APP_OLLAMA_BASE_URL=http://localhost:11434
+REACT_APP_OLLAMA_MODEL=phi4
+```
 
-### `npm run eject`
+### 4. Prepare HTS Data
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+1. Visit [https://hts.usitc.gov/search?query=8501](https://hts.usitc.gov/search?query=8501)
+2. Export the search results as a JSON file
+   - **Important**: Currently, only JSON format is supported. CSV and Excel formats are not supported.
+3. Keep the exported JSON file ready for upload in the application
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 5. Run the Application
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+For development:
+```bash
+npm start
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+The application will be available at [http://localhost:3000](http://localhost:3000)
 
-## Learn More
+For production build:
+```bash
+npm run build
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Usage
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. Launch the application
+2. Upload your exported HTS JSON file using the file upload interface
+3. Use the application features to analyze and process the HTS data
+4. The AI-powered analysis will help you understand and categorize the HTS codes
+
+## Deployment
+
+To deploy the application:
+
+1. Create a production build:
+```bash
+npm run build
+```
+
+2. The `build` folder will contain optimized static files ready for deployment
+3. Deploy the contents of the `build` folder to your preferred hosting service (e.g., Netlify, Vercel, AWS S3)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
