@@ -16,9 +16,8 @@ const CodeLookup: React.FC<Props> = ({ data }) => {
   const [code, setCode] = useState('');
   const [lookupResult, setLookupResult] = useState('');
   const [summary, setSummary] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Example: call your Ollama API at http://localhost:11411/generate
-  // (Update the URL or fetch options as needed in your environment)
   const generateSummary = async (codeValue: string, descriptionLines: string[]) => {
     try {
       // Create a short, descriptive prompt
@@ -57,61 +56,71 @@ Output:
   };
 
   const handleLookup = async () => {
-    setSummary(''); // reset any previous summary
-    if (!code) {
-      setLookupResult('Please enter a code.');
-      return;
-    }
-
-    // 1) Split the code by '.' => ["0101", "21", "00", "10"]
-    const parts = code.split('.').filter(Boolean);
-
-    // 2) Build incremental sub-codes => ["0101", "0101.21", "0101.21.00", "0101.21.00.10"]
-    const incrementalCodes: string[] = [];
-    let accum = parts[0];
-    incrementalCodes.push(accum);
-    for (let i = 1; i < parts.length; i++) {
-      accum = accum + '.' + parts[i];
-      incrementalCodes.push(accum);
-    }
-
-    // This array will hold the indexes in 'data' that match (or follow) each sub-code
-    const matchedIndexes: number[] = [];
-    let startIndex = 0;
-
-    // 3) For each incremental code, find it in the data, then collect subsequent blanks
-    for (const subCode of incrementalCodes) {
-      let foundIndex = data.slice(startIndex).findIndex(item => item.htsno === subCode);
-
-      if (foundIndex !== -1) {
-        // Adjust 'foundIndex' to be relative to the overall data
-        foundIndex += startIndex;
-        matchedIndexes.push(foundIndex);
-
-        let next = foundIndex + 1;
-        while (next < data.length && data[next].htsno === '') {
-          matchedIndexes.push(next);
-          next++;
-        }
-        startIndex = next;
+    try {
+      setSummary(''); // reset any previous summary
+      setIsLoading(true); // Start loading
+      if (!code) {
+        setLookupResult('Please enter a code.');
+        setIsLoading(false); // Stop loading
+        return;
       }
-      // If not found, move on
+
+      // 1) Split the code by '.' => ["0101", "21", "00", "10"]
+      const parts = code.split('.').filter(Boolean);
+
+      // 2) Build incremental sub-codes => ["0101", "0101.21", "0101.21.00", "0101.21.00.10"]
+      const incrementalCodes: string[] = [];
+      let accum = parts[0];
+      incrementalCodes.push(accum);
+      for (let i = 1; i < parts.length; i++) {
+        accum = accum + '.' + parts[i];
+        incrementalCodes.push(accum);
+      }
+
+      // This array will hold the indexes in 'data' that match (or follow) each sub-code
+      const matchedIndexes: number[] = [];
+      let startIndex = 0;
+
+      // 3) For each incremental code, find it in the data, then collect subsequent blanks
+      for (const subCode of incrementalCodes) {
+        let foundIndex = data.slice(startIndex).findIndex(item => item.htsno === subCode);
+
+        if (foundIndex !== -1) {
+          // Adjust 'foundIndex' to be relative to the overall data
+          foundIndex += startIndex;
+          matchedIndexes.push(foundIndex);
+
+          let next = foundIndex + 1;
+          while (next < data.length && data[next].htsno === '') {
+            matchedIndexes.push(next);
+            next++;
+          }
+          startIndex = next;
+        }
+        // If not found, move on
+      }
+
+      if (matchedIndexes.length === 0) {
+        setLookupResult('No matching code(s) found in the data.');
+        setIsLoading(false); // Stop loading
+        return;
+      }
+
+      // e.g. Gather descriptions
+      const descriptions = matchedIndexes.map(i => data[i].description);
+
+      // Combine (just for display before summarization)
+      const resultText = descriptions.join('\n');
+      setLookupResult(resultText);
+
+      // 4) Call Ollama to transform these lines into a single summary
+      await generateSummary(code, descriptions);
+    } catch (error) {
+      console.error('Error during lookup:', error);
+      setLookupResult('An error occurred during lookup.');
+    } finally {
+      setIsLoading(false); // Stop loading regardless of success/failure
     }
-
-    if (matchedIndexes.length === 0) {
-      setLookupResult('No matching code(s) found in the data.');
-      return;
-    }
-
-    // e.g. Gather descriptions
-    const descriptions = matchedIndexes.map(i => data[i].description);
-
-    // Combine (just for display before summarization)
-    const resultText = descriptions.join('\n');
-    setLookupResult(resultText);
-
-    // 4) Call Ollama to transform these lines into a single summary
-    await generateSummary(code, descriptions);
   };
 
   return (
@@ -133,9 +142,15 @@ Output:
       <div style={{ marginTop: 16 }}>
         <h3>Summary from Ollama</h3>
         <div className="summary-container">
-          <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-            {summary || '[No summary generated yet]'}
-          </pre>
+          {isLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+              <img src={require('../assets/loading-spinner.gif')} alt="Loading..." className="loading-spinner" />
+            </div>
+          ) : (
+            <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {summary || '[No summary generated yet]'}
+            </pre>
+          )}
         </div>
       </div>
     </div>
