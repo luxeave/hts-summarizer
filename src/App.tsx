@@ -13,7 +13,7 @@ function App() {
 
   return (
     <div>
-      <h1>HTS Code Summarizer (Frontend Only)</h1>
+      <h1>HTS Code Summarizer</h1>
       <FileUpload onJsonParsed={handleJsonParsed} />
 
       {data && data.length > 0 ? (

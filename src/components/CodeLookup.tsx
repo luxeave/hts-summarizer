@@ -1,4 +1,3 @@
-// src/components/CodeLookup.tsx
 import React, { useState } from 'react';
 
 interface HtsEntry {
@@ -16,8 +15,49 @@ interface Props {
 const CodeLookup: React.FC<Props> = ({ data }) => {
   const [code, setCode] = useState('');
   const [lookupResult, setLookupResult] = useState('');
+  const [summary, setSummary] = useState('');
 
-  const handleLookup = () => {
+  // Example: call your Ollama API at http://localhost:11411/generate
+  // (Update the URL or fetch options as needed in your environment)
+  const generateSummary = async (codeValue: string, descriptionLines: string[]) => {
+    try {
+      // Create a short, descriptive prompt
+      const promptText = `
+Rewrite the following HTS code and descriptions into a single human-friendly summary:
+
+Code: ${codeValue}
+Descriptions:
+${descriptionLines.join('\n')}
+
+Output:
+      `.trim();
+
+      // Example fetch call to your Ollama server
+      const response = await fetch('http://192.168.100.4:11434/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'phi4',
+          prompt: promptText,
+          stream: false,
+        }),
+      });
+
+      const data = await response.json();
+      // The response from Ollama is typically under `data.response`
+      if (data && data.response) {
+        setSummary(data.response);
+      } else {
+        setSummary('No summary returned from the model.');
+      }
+    } catch (error) {
+      console.error('Error calling Ollama API:', error);
+      setSummary('Error generating summary.');
+    }
+  };
+
+  const handleLookup = async () => {
+    setSummary(''); // reset any previous summary
     if (!code) {
       setLookupResult('Please enter a code.');
       return;
@@ -37,49 +77,41 @@ const CodeLookup: React.FC<Props> = ({ data }) => {
 
     // This array will hold the indexes in 'data' that match (or follow) each sub-code
     const matchedIndexes: number[] = [];
-
-    // Keep track of where to start searching in the data
     let startIndex = 0;
 
     // 3) For each incremental code, find it in the data, then collect subsequent blanks
     for (const subCode of incrementalCodes) {
-      // Find the item in the data with htsno = subCode, starting at 'startIndex'
       let foundIndex = data.slice(startIndex).findIndex(item => item.htsno === subCode);
 
       if (foundIndex !== -1) {
         // Adjust 'foundIndex' to be relative to the overall data
         foundIndex += startIndex;
-
-        // Push the found index
         matchedIndexes.push(foundIndex);
 
-        // Now walk forward from foundIndex + 1 to grab items with blank htsno:
         let next = foundIndex + 1;
         while (next < data.length && data[next].htsno === '') {
           matchedIndexes.push(next);
           next++;
         }
-
-        // Update startIndex so that the next sub-code search begins after this block
         startIndex = next;
       }
-      // If not found, we skip to the next sub-code
+      // If not found, move on
     }
 
-    // 4) Now gather descriptions (or other fields) from these matched indexes
     if (matchedIndexes.length === 0) {
       setLookupResult('No matching code(s) found in the data.');
       return;
     }
 
-    // e.g. Just gather descriptions
+    // e.g. Gather descriptions
     const descriptions = matchedIndexes.map(i => data[i].description);
 
-    // Combine descriptions, or do something more elaborate as needed
+    // Combine (just for display before summarization)
     const resultText = descriptions.join('\n');
-
-    // Show it to the user (you could also show duties from the last matched code, etc.)
     setLookupResult(resultText);
+
+    // 4) Call Ollama to transform these lines into a single summary
+    await generateSummary(code, descriptions);
   };
 
   return (
@@ -92,8 +124,15 @@ const CodeLookup: React.FC<Props> = ({ data }) => {
         onChange={(e) => setCode(e.target.value)}
       />
       <button onClick={handleLookup}>Lookup</button>
-      <div>
-        <pre>{lookupResult}</pre>
+
+      <div style={{ marginTop: 16 }}>
+        <h3>Raw Lookup Result</h3>
+        <pre>{lookupResult || '[No lookup result yet]'}</pre>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <h3>Summary from Ollama</h3>
+        <pre>{summary || '[No summary generated yet]'}</pre>
       </div>
     </div>
   );
